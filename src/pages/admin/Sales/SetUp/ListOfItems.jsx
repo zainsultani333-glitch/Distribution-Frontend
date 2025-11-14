@@ -43,7 +43,7 @@ const ListOfItems = () => {
   const [stock, setStock] = useState("");
   const [price, setPrice] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [reorder, setReorder] = useState("");
+  // const [reorder, setReorder] = useState("");
   const [enabled, setEnabled] = useState(true);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -253,7 +253,7 @@ const ListOfItems = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    setItemCategory("");
+    setItemCategory({ id: "", name: "" });
     setItemType("");
     setItemName("");
     setDetails("");
@@ -280,21 +280,21 @@ const ListOfItems = () => {
   const validateForm = () => {
     let errors = [];
 
-    if (!itemCategory.id) errors.push("Item Category is required");
-    if (!itemType) errors.push("Item Type is required");
+    if (!itemCategory.name) errors.push("Item Category is required");
+    // if (!itemType) errors.push("Item Type is required");
     if (!itemKind) errors.push("Item Kind is required");
     if (!itemName) errors.push("Item Name is required");
     if (!itemUnit) errors.push("Item Unit is required");
-    if (!perUnit) errors.push("Per Unit is required");
+    // if (!perUnit) errors.push("Per Unit is required");
     // if (!purchase) errors.push("Purchase is required");
     // if (!sales) errors.push("Sales is required");
     // if (!stock) errors.push("Stock is required");
     if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
-    if (expiryOption === "HasExpiry" && !expiryDay) {
-      errors.push("Expiry day is required when Has Expiry is selected");
-    }
+    // if (expiryOption === "HasExpiry" && !expiryDay) {
+    //   errors.push("Expiry day is required when Has Expiry is selected");
+    // }
 
     return errors;
   };
@@ -319,9 +319,9 @@ const ListOfItems = () => {
       editId ? itemCategoryId : `ITEM-${nextItemCategoryId}`
     );
     formData.append("itemName", itemName);
-    formData.append("itemCategory", itemCategory.id);
+    formData.append("itemCategory", itemCategory.name);
     // formData.append("manufacturer", manufacture);
-    formData.append("supplier", supplier);
+    if (!supplier) errors.push("Supplier is required");
     // formData.append("purchase", parseFloat(purchase) || 0);
     formData.append("itemType", itemType);
     // formData.append("stock", parseInt(stock) || 0);
@@ -329,8 +329,8 @@ const ListOfItems = () => {
     formData.append("shelveLocation", shelveLocation);
     formData.append("itemUnit", itemUnit);
     formData.append("perUnit", parseInt(perUnit) || 0);
-    formData.append("reorder", parseInt(reorder) || 0);
-    formData.append("isEnable", enabled);
+    // formData.append("reorder", parseInt(reorder) || 0);
+    formData.append("isEnable", enabled ? 1 : 0);
     formData.append("primaryBarcode", primaryBarcode);
     formData.append("secondaryBarcode", barcode);
     formData.append("itemKind", itemKind);
@@ -339,7 +339,7 @@ const ListOfItems = () => {
       formData.append("hasExpiry", parseInt(expiryDay) || 0);
       formData.append("noHasExpiray", false); // explicit
     } else {
-      formData.append("noHasExpiray", true); // no expiry case
+      formData.append("noHasExpiry", false); // no expiry case
     }
     if (image) {
       formData.append("itemImage", image);
@@ -395,7 +395,7 @@ const ListOfItems = () => {
     // setStock("");
     setPrice("");
     setBarcode("");
-    setReorder("");
+    // setReorder("");
     setEnabled(false);
     setImagePreview("");
     setImage(null);
@@ -428,7 +428,7 @@ const ListOfItems = () => {
     // setSales(item.price.toString() ?? "");
     // setStock(item.stock ? item.stock.toString() : "");
     setBarcode(item.secondaryBarcode || "");
-    setReorder(item.reorder ? item.reorder.toString() : "");
+    // setReorder(item.reorder ? item.reorder.toString() : "");
     setItemKind(item.itemKind || "");
     setPrimaryBarcode(item.primaryBarcode || generateRandomBarcode());
 
@@ -757,7 +757,7 @@ const ListOfItems = () => {
                   // setStock("");
                   setPrice("");
                   setBarcode("");
-                  setReorder("");
+                  // setReorder("");
                   setEnabled(true);
                   setImage(null);
                   setImagePreview(null);
@@ -807,28 +807,26 @@ const ListOfItems = () => {
                 {/* Section 2 */}
                 <div className="border px-4 py-8 rounded-lg bg-formBgGray space-y-4">
                   <div className="flex gap-5">
-                    {/* Item Category */}
+                    {/* Item Category as Input */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Item Category <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={itemCategory.id}
+                      <input
+                        type="text"
+                        value={itemCategory.name}
+                        onChange={(e) =>
+                          setItemCategory({ id: itemCategory.id, name: e.target.value })
+                        }
+                        placeholder="Enter Category"
                         required
-                        onChange={handleCategoryChange}
                         className="w-full p-2 border rounded"
-                      >
-                        <option value="">Select Category</option>
-                        {categoryList.map((category) => (
-                          <option key={category._id} value={category._id}>
-                            {category.categoryName}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
+
                     {/* Item Type */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Item Type <span className="text-red-500">*</span>
                       </label>
@@ -837,7 +835,7 @@ const ListOfItems = () => {
                         required
                         disabled={!itemCategory}
                         className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-                    ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                        ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
                         onChange={(e) => setItemType(e.target.value)}
                       >
                         <option value="">Select Item Type</option>
@@ -847,7 +845,7 @@ const ListOfItems = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
                     {/* Item Kind */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-400 font-medium">
@@ -947,28 +945,24 @@ const ListOfItems = () => {
                       />
                     </div>
 
-                    {/* Item Unit */}
+                    {/* Item Unit as Input */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Item Unit <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <input
+                        type="text"
                         value={itemUnit}
-                        required
                         onChange={(e) => setItemUnit(e.target.value)}
+                        placeholder="Enter Unit"
+                        required
                         className="w-full p-2 border rounded"
-                      >
-                        <option value="">Select Unit</option>
-                        {itemUnitList.map((unit) => (
-                          <option key={unit._id} value={unit._id}>
-                            {unit.unitName}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
+
                     {/* Per Unit */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Per Unit <span className="text-red-500">*</span>
                       </label>
@@ -978,7 +972,7 @@ const ListOfItems = () => {
                         onChange={(e) => setPerUnit(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Purchase */}
                     {/* <div className="flex-1 block min-w-0">
@@ -1027,7 +1021,7 @@ const ListOfItems = () => {
 
                   <div className="flex gap-4">
                     {/* Reorder */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Reorder
                       </label>
@@ -1037,7 +1031,7 @@ const ListOfItems = () => {
                         onChange={(e) => setReorder(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Secandory Barcode */}
                     <div className="flex-1 min-w-0">
@@ -1066,7 +1060,8 @@ const ListOfItems = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-20">
+
+              {/* <div className="flex gap-20">
                 <div>
                   <label className="block text-gray-700 font-medium">
                     Expiry Day
@@ -1116,7 +1111,8 @@ const ListOfItems = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </div> */}
+
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">

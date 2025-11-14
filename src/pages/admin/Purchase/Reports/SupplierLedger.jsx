@@ -41,18 +41,20 @@ const SupplierLedger = () => {
   }, []);
 
   // 2️⃣ FETCH SUPPLIER LEDGER ENTRIES
-  const fetchSupplierLedger = async (supplierId) => {
-    if (!supplierId) return;
-
+  const fetchSupplierLedger = async (supplierId = "") => {
     try {
       setLoading(true);
-      let query = `/supplier-ledger?supplier=${supplierId}`;
+      let query = "/supplier-ledger";
+
+      // Include supplier filter only if selected
+      if (supplierId) query += `?supplier=${supplierId}`;
+
+      // Include date filters only if dates are selected
       if (dateFrom && dateTo) {
-        query += `&from=${dateFrom}&to=${dateTo}`;
+        query += supplierId ? `&from=${dateFrom}&to=${dateTo}` : `?from=${dateFrom}&to=${dateTo}`;
       }
 
       const response = await api.get(query);
-
       setLedgerEntries(response.data);
     } catch (error) {
       toast.error(
@@ -63,26 +65,25 @@ const SupplierLedger = () => {
     }
   };
 
+
   // INITIAL LOAD
   useEffect(() => {
     fetchSuppliers();
-  }, [fetchSuppliers]);
+    fetchSupplierLedger(); // ✅ fetch all on refresh
+  }, []);
 
+  // When supplier changes
   const handleSupplierChange = (e) => {
     const supplierId = e.target.value;
     setSelectedSupplier(supplierId);
     setShowSupplierError(false);
-
-    if (supplierId) {
-      fetchSupplierLedger(supplierId); // ✅ call API when selected
-    } else {
-      setLedgerEntries([]); // clear table if deselected
-    }
+    fetchSupplierLedger(supplierId);
   };
 
+  // When date range changes
   useEffect(() => {
-    if (selectedSupplier && dateFrom && dateTo) {
-      fetchSupplierLedger(selectedSupplier);
+    if (dateFrom && dateTo) {
+      fetchSupplierLedger(selectedSupplier); // pass supplier if selected, or fetch all if not
     }
   }, [dateFrom, dateTo]);
 
@@ -162,11 +163,6 @@ const SupplierLedger = () => {
                     </option>
                   ))}
                 </select>
-                {showSupplierError && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Please select a supplier before proceeding.
-                  </p>
-                )}
               </div>
 
               {/* From Date */}
@@ -217,13 +213,9 @@ const SupplierLedger = () => {
                 cols={7}
                 className="lg:grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr]"
               />
-            ) : !selectedSupplier ? (
-              <div className="text-center py-6 text-gray-500">
-                Please select a supplier to view ledger entries.
-              </div>
             ) : ledgerEntries.length === 0 ? (
               <div className="text-center py-6 text-gray-500">
-                No ledger entries found.
+                {selectedSupplier ? "No ledger entries found." : "No ledger entries available."}
               </div>
             ) : (
               <>
@@ -279,11 +271,10 @@ const SupplierLedger = () => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white"
+                      }`}
                   >
                     Previous
                   </button>
@@ -292,11 +283,10 @@ const SupplierLedger = () => {
                       setCurrentPage((p) => Math.min(p + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white"
+                      }`}
                   >
                     Next
                   </button>

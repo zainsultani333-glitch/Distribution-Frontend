@@ -40,6 +40,7 @@ const SalesInvoice = () => {
   const [isView, setIsView] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const invoiceRef = useRef(null);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
   const headers = {
     headers: {
@@ -53,24 +54,17 @@ const SalesInvoice = () => {
       setLoading(true);
 
       let url = `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`;
-      let params = {}; // ✅ declare params first
+      let params = {};
 
-      // If salesman is selected, apply filter query
-      if (selectedSalesman) {
-        params = {
-          date: date,
-          salesmanId: selectedSalesman,
-        };
+      if (!showAllInvoices) {
+        if (selectedSalesman) params.salesmanId = selectedSalesman;
+        if (date) params.date = date;
       }
 
-      // ✅ include params only if needed
       const res = await axios.get(url, { params });
-
-      // ✅ Handle response
       setInvoices(res.data?.data || []);
-      // console.log("✅ Pending Orders Response:", res.data);
     } catch (error) {
-      console.error("❌ Failed to fetch SalesInvoice:", error);
+      console.error("Failed to fetch SalesInvoice:", error);
       setTimeout(() => {
         toast.error("Failed to fetch pending orders");
       }, 2000);
@@ -78,6 +72,10 @@ const SalesInvoice = () => {
       setTimeout(() => setLoading(false), 500);
     }
   }
+
+  useEffect(() => {
+    fetchSalesInvoiceList();
+  }, [selectedSalesman, date, showAllInvoices]);
 
   // 🔹 Load all data initially
   useEffect(() => {
@@ -256,14 +254,6 @@ const SalesInvoice = () => {
             <h1 className="text-2xl font-bold text-newPrimary">
               Pending Orders
             </h1>
-            {currentRecords.length > 0 && (
-              <button
-                onClick={() => handleSaleInvoicePrint(currentRecords)}
-                className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
-              >
-                <Printer size={18} />
-              </button>
-            )}
           </div>
 
           {/* 🔹 Filter Fields */}
@@ -271,9 +261,9 @@ const SalesInvoice = () => {
             {/* Date + Invoice in left column */}
             <div className="flex flex-wrap justify-between items-center gap-8 w-full mt-4 mb-5">
               {/* Left: Date + Salesman */}
-              <div className="flex gap-8 flex-wrap">
+              <div className="flex gap-4 flex-wrap">
                 <div className="flex items-center gap-6">
-                  <label className="text-gray-700 font-medium w-24">
+                  <label className="text-gray-700 font-medium w-15">
                     Date <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -286,7 +276,7 @@ const SalesInvoice = () => {
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <label className="text-gray-700 font-medium w-24">
+                  <label className="text-gray-700 font-medium w-15">
                     Salesman <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -303,7 +293,18 @@ const SalesInvoice = () => {
                   </select>
                 </div>
               </div>
-
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="showAllInvoices"
+                  checked={showAllInvoices}
+                  onChange={(e) => setShowAllInvoices(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="showAllInvoices" className="text-gray-700 font-medium">
+                  Show All Invoices
+                </label>
+              </div>
               {/* Right: Search Bar */}
               <div className="ml-auto flex items-center gap-2">
                 <input
@@ -392,11 +393,10 @@ const SalesInvoice = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === 1
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Previous
                       </button>
@@ -407,11 +407,10 @@ const SalesInvoice = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === totalPages
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Next
                       </button>
